@@ -1,5 +1,5 @@
+from input_parser import InputParser
 import requests
-import argparse
 from functools import partial
 from multiprocessing import Pool
 from bs4 import BeautifulSoup as bsoup
@@ -9,11 +9,13 @@ GREEN, RED = '\033[1;32m', '\033[91m'
 
 
 def get_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-q', '--query', dest='query', help='Specify the Search Query within \'\'')
-    parser.add_argument('-e', '--engine', dest='engine', help='Specify the Search Engine (Google/Bing)')
-    parser.add_argument('-p', '--pages', dest='pages', help='Specify the Number of Pages (Default: 1)')
-    parser.add_argument('-P', '--processes', dest='processes', help='Specify the Number of Processes (Default: 2)')    
+    parser = InputParser()
+    parser.add_argument('-q', '--query', dest='query', help='Specify the Search Query within \'\'', required=True,
+                        input="[?] Enter the Search Query:")
+    parser.add_argument('-e', '--engine', dest='engine', help='Specify the Search Engine (Google/Bing)', required=True,
+                        input='[?] Choose the Search Engine (Google/Bing): ')
+    parser.add_argument('-p', '--pages', dest='pages', help='Specify the Number of Pages (Default: 1)', default=1)
+    parser.add_argument('-P', '--processes', dest='processes', help='Specify the Number of Processes (Default: 2)', default=2)
     options = parser.parse_args()
     return options
 
@@ -60,8 +62,6 @@ def search_result(q, engine, pages, processes, result):
     print('-' * 70)
 
 
-options = get_arguments()
-
 banner = ''' 
 
     ██████╗░░█████╗░██████╗░██╗░░██╗  ░██████╗░█████╗░░█████╗░███╗░░██╗███╗░░██╗███████╗██████╗░
@@ -76,34 +76,7 @@ banner = '''
 '''
 
 
-def main():
-    print()
-    if not options.query:
-        query = input('[?] Enter the Search Query: ')
-    else:
-        query = options.query
-    if not options.engine:
-        engine = input('[?] Choose the Search Engine (Google/Bing): ')
-    else:
-        engine = options.engine
-
-    if engine.lower() == 'google':
-        target = partial(google_search, query)
-    elif engine.lower() == 'bing':
-        target = partial(bing_search, query)
-
-    else:
-        print('[-] Invalid Option Entered!...Exiting the Program....')
-        exit()
-    if not options.pages:
-        pages = 1
-    else:
-        pages = options.pages
-
-    if not options.processes:
-        processes = 2
-    else:
-        processes = options.processes
+def run_pool(processes=2, pages=1, target=None, query=None, engine=None):
 
     with Pool(int(processes)) as p:
         result = p.map(target, range(int(pages)))
@@ -111,18 +84,34 @@ def main():
     search_result(query, engine, pages, processes, result)
 
 
-print(GREEN + banner)
+def main():
+    query = options.query
+    engine = options.engine
+    if engine.lower() == 'google':
+        target = partial(google_search, query)
+    elif engine.lower() == 'bing':
+        target = partial(bing_search, query)
+    else:
+        print('[-] Invalid Option Entered!...Exiting the Program....')
+        exit()
 
-try:
-    main()
-    while True:
-        if options.query and options.engine:
-            exit()
-        else:
-            main()
-except KeyboardInterrupt:
-    print('\nThanks For using!')
-    exit()
-except TimeoutError:
-    print(RED + '\n[-] Too many requests, please try again later....')
-    exit()
+    pages = options.pages
+    processes = options.processes
+    run_pool(target=target, query=query, processes=processes, pages=pages, engine=engine)
+
+
+if __name__ == "__main__":
+    options = get_arguments()
+    try:
+        main()
+        while True:
+            if options.query and options.engine:
+                exit()
+            else:
+                main()
+    except KeyboardInterrupt:
+        print('\nThanks For using!')
+        exit()
+    except TimeoutError:
+        print(RED + '\n[-] Too many requests, please try again later....')
+        exit()

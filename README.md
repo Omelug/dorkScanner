@@ -1,4 +1,12 @@
+
+# Reasons for dork: #
+
+I need use it in other scripts like package
+Author of fork: Omelug
+
+
 # DORK SCANNER #
+
 
 A typical search engine dork scanner that scrapes search engines with queries that you provide in order to find vulnerable URLs.
 
