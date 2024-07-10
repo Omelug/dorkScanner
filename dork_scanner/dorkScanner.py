@@ -82,6 +82,7 @@ def run_pool(processes=2, pages=1, target=None, query=None, engine=None):
         result = p.map(target, range(int(pages)))
 
     search_result(query, engine, pages, processes, result)
+    return result
 
 
 def main():
