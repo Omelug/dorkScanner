@@ -76,12 +76,12 @@ banner = '''
 '''
 
 
-def run_pool(processes=2, pages=1, target=None, query=None, engine=None):
+def run_pool(processes=2, pages=1, target=None, query=None, engine=None, add=""):
 
     with Pool(int(processes)) as p:
         result = p.map(target, range(int(pages)))
 
-    search_result(query, engine, pages, processes, result)
+    search_result(f"{query} {add}", engine, pages, processes, result)
     return result
 
 
